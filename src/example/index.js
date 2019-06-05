@@ -1,5 +1,5 @@
 import("../../pkg/test")
   .then(module => {
-    console.log("running");
+    console.log("imported wasm package");
     module.run();
   })

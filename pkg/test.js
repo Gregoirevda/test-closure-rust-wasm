@@ -25,10 +25,10 @@ export function __wbg_log_a9d2d4385c0de928(arg0, arg1) {
     }
 }
 /**
-* @returns {ClosureHandle}
+* @returns {void}
 */
 export function run() {
-    return ClosureHandle.__wrap(wasm.run());
+    return wasm.run();
 }
 
 const heap = new Array(32);
@@ -37,23 +37,21 @@ heap.fill(undefined);
 
 heap.push(undefined, null, true, false);
 
-let heap_next = heap.length;
+function getObject(idx) { return heap[idx]; }
 
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
+export function __widl_instanceof_Window(idx) {
+    return getObject(idx) instanceof Window ? 1 : 0;
 }
 
-export function __wbindgen_cb_drop(i) {
-    const obj = getObject(i).original;
-    dropObject(i);
-    if (obj.cnt-- == 1) {
-        obj.a = 0;
-        return 1;
+let cachegetUint32Memory = null;
+function getUint32Memory() {
+    if (cachegetUint32Memory === null || cachegetUint32Memory.buffer !== wasm.memory.buffer) {
+        cachegetUint32Memory = new Uint32Array(wasm.memory.buffer);
     }
-    return 0;
+    return cachegetUint32Memory;
 }
+
+let heap_next = heap.length;
 
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
@@ -66,7 +64,63 @@ function addHeapObject(obj) {
     return idx;
 }
 
-export function __wbindgen_closure_wrapper75(a, b, _ignored) {
+function handleError(exnptr, e) {
+    const view = getUint32Memory();
+    view[exnptr / 4] = 1;
+    view[exnptr / 4 + 1] = addHeapObject(e);
+}
+
+export function __widl_f_set_interval_with_callback_and_timeout_and_arguments_0_Window(arg0, arg1, arg2, exnptr) {
+    try {
+        return getObject(arg0).setInterval(getObject(arg1), arg2);
+    } catch (e) {
+        handleError(exnptr, e);
+    }
+}
+
+export function __wbg_newnoargs_e5412d32e226619e(arg0, arg1) {
+    let varg0 = getStringFromWasm(arg0, arg1);
+    try {
+        return addHeapObject(new Function(varg0));
+    } catch (e) {
+        console.error("wasm-bindgen: imported JS function that was not marked as `catch` threw an error:", e);
+        throw e;
+    }
+}
+
+export function __wbg_call_f183995dc9d8c54c(arg0, arg1, exnptr) {
+    try {
+        return addHeapObject(getObject(arg0).call(getObject(arg1)));
+    } catch (e) {
+        handleError(exnptr, e);
+    }
+}
+
+export function __wbindgen_object_clone_ref(idx) {
+    return addHeapObject(getObject(idx));
+}
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+export function __wbindgen_object_drop_ref(i) { dropObject(i); }
+
+export function __wbindgen_cb_drop(i) {
+    const obj = getObject(i).original;
+    dropObject(i);
+    if (obj.cnt-- == 1) {
+        obj.a = 0;
+        return 1;
+    }
+    return 0;
+}
+
+export const __wbindgen_cb_forget = dropObject;
+
+export function __wbindgen_closure_wrapper68(a, b, _ignored) {
     const f = wasm.__wbg_function_table.get(2);
     const d = wasm.__wbg_function_table.get(3);
     const cb = function() {
@@ -100,13 +154,6 @@ export class ClosureHandle {
 
     constructor() {
         throw new Error('cannot invoke `new` directly');
-    }
-
-    static __wrap(ptr) {
-        const obj = Object.create(ClosureHandle.prototype);
-        obj.ptr = ptr;
-
-        return obj;
     }
 
     free() {

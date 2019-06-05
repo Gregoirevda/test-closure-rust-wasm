@@ -1,5 +1,5 @@
 /* tslint:disable */
-export function run(): ClosureHandle;
+export function run(): void;
 export class ClosureHandle {
   free(): void;
 }
