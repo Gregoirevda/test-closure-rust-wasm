@@ -118,20 +118,15 @@ export function __wbindgen_cb_drop(i) {
     return 0;
 }
 
-export const __wbindgen_cb_forget = dropObject;
-
-export function __wbindgen_closure_wrapper68(a, b, _ignored) {
+export function __wbindgen_closure_wrapper72(a, b, _ignored) {
     const f = wasm.__wbg_function_table.get(2);
     const d = wasm.__wbg_function_table.get(3);
     const cb = function() {
         this.cnt++;
-        let a = this.a;
-        this.a = 0;
         try {
-            return f(a, b);
+            return f(this.a, b);
 
         } finally {
-            this.a = a;
             if (this.cnt-- == 1) d(this.a, b);
 
         }

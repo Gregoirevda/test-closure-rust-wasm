@@ -5,6 +5,7 @@ use web_sys::{Document, Element, HtmlElement, Window};
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 
+// Used in the documentation do return the Closure (Not a solution in the app scope)
 #[wasm_bindgen]
 pub struct ClosureHandle(Closure<FnMut()>);
 
@@ -14,37 +15,29 @@ extern "C" {
     fn log(s: &str);
 }
 
-
-
 #[wasm_bindgen]
 pub fn run() {
+    // Requirment 1: the callback function is defined at this place...
     fn handle_click() {
         log("Click");
     }
 
-    let boxed_handle_click = Box::new(move || {
+    let boxed_handle_click = Closure::wrap(Box::new(move || {
         handle_click();
-    }) as Box<Fn()>;
+    }) as Box<Fn()>);
 
-    setTimeout(boxed_handle_click);
+    // Requirment 2: the callback is passed as a reference
+    // Doesn't matter if it is the Closure function or the function 
+    // (Which would be wrapped by Closure in the setTimeout function)
+    setTimeout(&boxed_handle_click);
 }
 
-fn setTimeout(handle_click: std::boxed::Box<Fn()>) {
-    // First up we use `Closure::wrap` to wrap up a Rust closure and create
-    // a JS closure.
-    let cb = Closure::wrap(handle_click);
-
-    // Next we pass this via reference to the `setTimeout` function, and
-    // `setTimeout` gets a handle to the corresponding JS closure.
+fn setTimeout(handle_click: &Closure<Fn()>) {
     let window = web_sys::window().expect("should have a window in this context");
 
     window
-        .set_interval_with_callback_and_timeout_and_arguments_0(cb.as_ref().unchecked_ref(), 1000);
+        .set_interval_with_callback_and_timeout_and_arguments_0(handle_click.as_ref().unchecked_ref(), 1000);
   
-
-    // If we were to drop `cb` here it would cause an exception to be raised
-    // when the timeout elapses. Instead we *return* our handle back to JS
-    // so JS can tell us later when it would like to deallocate this handle.
-    //ClosureHandle(cb)
-    cb.forget();
+    // Not possible with a reference (only a copied value, but not possible in poroject scope)
+   // handle_click.forget();
 }
