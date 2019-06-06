@@ -14,13 +14,25 @@ extern "C" {
     fn log(s: &str);
 }
 
+
+
 #[wasm_bindgen]
 pub fn run() {
+    fn handle_click() {
+        log("Click");
+    }
+
+    let boxed_handle_click = Box::new(move || {
+        handle_click();
+    }) as Box<Fn()>;
+
+    setTimeout(boxed_handle_click);
+}
+
+fn setTimeout(handle_click: std::boxed::Box<Fn()>) {
     // First up we use `Closure::wrap` to wrap up a Rust closure and create
     // a JS closure.
-    let cb = Closure::wrap(Box::new(move || {
-        log("timeout elapsed!");
-    }) as Box<FnMut()>);
+    let cb = Closure::wrap(handle_click);
 
     // Next we pass this via reference to the `setTimeout` function, and
     // `setTimeout` gets a handle to the corresponding JS closure.
